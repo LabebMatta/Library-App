@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="See whether the library is open and keep a record of status changes.">
+    <title>Library Status</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Library Status home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img">
+              <path d="M4.5 5.5A3.5 3.5 0 0 1 8 2h3v17H8a3.5 3.5 0 0 0-3.5 3V5.5Zm15 0A3.5 3.5 0 0 0 16 2h-3v17h3a3.5 3.5 0 0 1 3.5 3V5.5Z"/>
+            </svg>
+          </span>
+          <span>Library Status</span>
+        </a>
+        <p>Community access, at a glance</p>
+      </header>
+
+      <section class="status-card" id="statusCard" aria-live="polite" aria-busy="true">
+        <p class="eyebrow">The library is currently</p>
+        <div class="status-line">
+          <span class="status-dot" aria-hidden="true"></span>
+          <h1 id="statusText">LOADING</h1>
+        </div>
+        <p class="status-note" id="statusNote">Checking the latest status…</p>
+      </section>
+
+      <section class="control-card" aria-labelledby="controlTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Update access</p>
+            <h2 id="controlTitle">Change library status</h2>
+          </div>
+        </div>
+
+        <form id="statusForm" novalidate>
+          <label for="username">Enter Username</label>
+          <div class="form-row">
+            <input
+              id="username"
+              name="username"
+              type="text"
+              maxlength="50"
+              autocomplete="name"
+              placeholder="Your name"
+              required
+            >
+            <button id="toggleButton" type="submit" disabled>Loading…</button>
+          </div>
+          <p class="form-message" id="formMessage" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="history-section" aria-labelledby="historyTitle">
+        <div class="section-heading history-heading">
+          <div>
+            <p class="eyebrow">Recent activity</p>
+            <h2 id="historyTitle">Status history</h2>
+          </div>
+          <span class="history-count" id="historyCount"></span>
+        </div>
+        <div class="history-card">
+          <ul id="historyList" class="history-list" aria-live="polite"></ul>
+          <div id="emptyState" class="empty-state" hidden>
+            <span aria-hidden="true">⌁</span>
+            <h3>No activity yet</h3>
+            <p>The first status change will appear here.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
