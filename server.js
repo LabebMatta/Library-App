@@ -1,11 +1,13 @@
 require("dotenv").config({ quiet: true });
 
 const express = require("express");
+const crypto = require("crypto");
 const path = require("path");
 const {
   initializeDatabase,
   getLibraryData,
   toggleLibrary,
+  openLibrary,
   closeDatabase
 } = require("./database");
 
@@ -41,6 +43,52 @@ app.post("/api/toggle", async (request, response, next) => {
     response.json(await toggleLibrary(username));
   } catch (error) {
     next(error);
+  }
+});
+
+function hasValidNfcToken(providedToken) {
+  const expectedToken = process.env.NFC_TOKEN;
+  if (!expectedToken || typeof providedToken !== "string") return false;
+
+  const expected = Buffer.from(expectedToken);
+  const provided = Buffer.from(providedToken);
+  return expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
+}
+
+app.get("/api/nfc-open", async (request, response, next) => {
+  if (!process.env.NFC_TOKEN) {
+    return response.status(503).json({
+      error: "NFC opening is not configured. Add NFC_TOKEN to the server environment."
+    });
+  }
+
+  if (!hasValidNfcToken(request.query.token)) {
+    return response.status(401).json({ error: "Invalid NFC token." });
+  }
+
+  const username = typeof request.query.name === "string"
+    ? request.query.name.trim().replace(/\s+/g, " ")
+    : "Labeb";
+
+  if (!username) {
+    return response.status(400).json({ error: "Please provide a name." });
+  }
+
+  if (username.length > 50) {
+    return response.status(400).json({ error: "Name must be 50 characters or fewer." });
+  }
+
+  try {
+    const data = await openLibrary(username);
+    response.set("Cache-Control", "no-store");
+
+    if (request.query.format === "json") {
+      return response.json(data);
+    }
+
+    return response.redirect(303, "/");
+  } catch (error) {
+    return next(error);
   }
 });
 

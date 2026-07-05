@@ -60,3 +60,22 @@ npm start
 Open `http://localhost:3000`.
 
 The old `data.json` file is no longer read or written by the application.
+
+## NFC open link
+
+The app includes an idempotent NFC endpoint that opens the library but never
+closes it on a repeated scan. It records an `opened` activity only when the
+state actually changes from closed to open.
+
+Add a long random value named `NFC_TOKEN` to the Render environment. Then use
+this URL on the NFC tag, replacing the hostname and token:
+
+```text
+https://YOUR-RENDER-SERVICE.onrender.com/api/nfc-open?name=Labeb&token=YOUR_NFC_TOKEN
+```
+
+Opening the URL updates Supabase and redirects to the library page. For a JSON
+response while testing, append `&format=json`.
+
+Treat the tag as a physical key: anyone who reads or copies its URL can trigger
+the endpoint. If it is lost, replace `NFC_TOKEN` in Render and rewrite the tag.

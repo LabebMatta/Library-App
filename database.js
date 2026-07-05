@@ -106,6 +106,55 @@ async function toggleLibrary(username) {
   }
 }
 
+async function openLibrary(username) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const statusResult = await client.query(
+      "SELECT is_open FROM library_status WHERE id = 1 FOR UPDATE"
+    );
+
+    if (statusResult.rowCount !== 1) {
+      throw new Error("Library status row is missing.");
+    }
+
+    const changed = !statusResult.rows[0].is_open;
+
+    if (changed) {
+      await client.query(
+        "UPDATE library_status SET is_open = true, updated_at = NOW() WHERE id = 1"
+      );
+      await client.query(
+        "INSERT INTO activity_log (username, action) VALUES ($1, 'opened')",
+        [username]
+      );
+    }
+
+    const historyResult = await client.query(`
+      SELECT id, username, action, created_at
+      FROM activity_log
+      ORDER BY created_at DESC, id DESC
+      LIMIT 100
+    `);
+
+    await client.query("COMMIT");
+
+    return {
+      status: "OPEN",
+      isOpen: true,
+      changed,
+      history: historyResult.rows.map(mapHistoryRow)
+    };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function closeDatabase() {
   await pool.end();
 }
@@ -114,5 +163,6 @@ module.exports = {
   initializeDatabase,
   getLibraryData,
   toggleLibrary,
+  openLibrary,
   closeDatabase
 };
